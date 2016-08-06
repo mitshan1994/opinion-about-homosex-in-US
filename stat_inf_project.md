@@ -11,7 +11,8 @@ output:
 
 ### Load packages
 
-```{r load-packages, message = FALSE}
+
+```r
 library(ggplot2)
 library(dplyr)
 library(statsr)
@@ -23,7 +24,8 @@ Make sure your data and R Markdown files are in the same directory. When loaded
 your data file will be called `gss`. Delete this note when before you submit 
 your work. 
 
-```{r load-data}
+
+```r
 load("gss.Rdata")
 ```
 
@@ -70,7 +72,8 @@ And we will consider *Not Wrong At All* as agree with homosex and other four cho
 
 First, let's have a look at the trend of the proportion.
 
-```{r trend of proportion}
+
+```r
 # Get a function to calculate the proportion
 get_proportion <- function(x) {
   nume <- sum(x == "Not Wrong At All", na.rm = T)
@@ -83,7 +86,19 @@ prop_aggr <- aggregate(gss$homosex, by = list(gss$year), get_proportion)
 colnames(prop_aggr) = c("year", "proportion")
 prop_aggr <- prop_aggr[!is.nan(prop_aggr$proportion), ]
 head(prop_aggr)
+```
 
+```
+##   year proportion
+## 2 1973  0.1098066
+## 3 1974  0.1296034
+## 5 1976  0.1591865
+## 6 1977  0.1486579
+## 8 1980  0.1460272
+## 9 1982  0.1343874
+```
+
+```r
 # Now plot the trend
 g <- ggplot(data = prop_aggr, aes(x = year, y = proportion))
 g <- g + geom_point() + geom_line()
@@ -92,9 +107,12 @@ g <- g + labs(title = "Proportion of US people agree with homosex over years")
 g
 ```
 
+![plot of chunk trend of proportion](figure/trend of proportion-1.png)
+
 In the above plot, there is a clear uptrend of the proportion of US people who have the opinion that Homosex is **not wrong at all**. Particularly, we want to check seriously whether there is a difference of proportion in the year 1982 and 2012. First, let's look at these two years' comparison.
 
-```{r two years compare}
+
+```r
 two_year_cmp <- prop_aggr[prop_aggr$year %in% c("1982", "2012"), ]
 g <- ggplot(data = two_year_cmp, aes(x = factor(year), y = proportion))
 g <- g + geom_bar(stat = "identity")
@@ -103,17 +121,33 @@ g <- g + labs(title = "Proportion of US people agree with homosex")
 g
 ```
 
+![plot of chunk two years compare](figure/two years compare-1.png)
+
 The comparison between 1982 and 2012 shows that there is a difference in the proportion of US people agree with homosex.
 
-```{r summary statistics}
+
+```r
 gss1982 <- gss[gss$year == "1982", ]
 gss2012 <- gss[gss$year == "2012", ]
 n1982 <- sum(!is.na(gss1982$homosex), na.rm = T)
 n2012 <- sum(!is.na(gss2012$homosex), na.rm = T)
 two_year_cmp$n <- c(n1982, n2012)
 two_year_cmp
+```
+
+```
+##    year proportion    n
+## 9  1982  0.1343874 1771
+## 29 2012  0.4463277 1239
+```
+
+```r
 p_diff_hat <- two_year_cmp[2, 2] - two_year_cmp[1, 2]
 p_diff_hat
+```
+
+```
+## [1] 0.3119403
 ```
 
 And we get $$\hat{p}_{1982} = 0.1343874$$ $$\hat{p}_{2012} = 0.4463277$$
@@ -139,10 +173,20 @@ $$H_A: p_{2012} - p_{1982} \ne 0$$
 And we set our significance level as $\alpha = 0.05$.
 
 I want to use hypothesis tests for comparing two proportions. First, let's check conditions.
-```{r p pooled}
+
+```r
 two_year_cmp$success <- with(two_year_cmp, round(n * proportion))
 two_year_cmp$failure <- with(two_year_cmp, n - success)
 two_year_cmp
+```
+
+```
+##    year proportion    n success failure
+## 9  1982  0.1343874 1771     238    1533
+## 29 2012  0.4463277 1239     553     686
+```
+
+```r
 # now compute pooled proportion
 p_pool <- sum(two_year_cmp$success) / sum(two_year_cmp$n)
 two_year_cmp$success_hat <- round(two_year_cmp$n * p_pool)
@@ -150,28 +194,49 @@ two_year_cmp$failure_hat <- round(two_year_cmp$n * (1 - p_pool))
 two_year_cmp
 ```
 
+```
+##    year proportion    n success failure success_hat failure_hat
+## 9  1982  0.1343874 1771     238    1533         465        1306
+## 29 2012  0.4463277 1239     553     686         326         913
+```
+
 The numbers of success and failure computed are great or equal to 10. So the success-failure condition satisfies. The independence is also satisfied because of the full probability sampling.And we can use CLT for the two proportion comparison. In another word, 
 $$\hat{p}_{2012} - \hat{p}_{1982} = \hat{p}_{diff} \sim N(\mu, SE)$$
 
 Under the $H_0$, we have $\mu = 0$, $SE = \sqrt{\frac{\hat{p}_{pool}(1 - \hat{p}_{pool})}{n_1} + \frac{\hat{p}_{pool}(1 - \hat{p}_{pool})}{n_2}}$
 
-```{r calculate SE}
+
+```r
 se <- sqrt(p_pool * (1 - p_pool) * (1/two_year_cmp[1, "n"] + 1/two_year_cmp[2, "n"]))
 se
 ```
 
+```
+## [1] 0.01630192
+```
+
 Now, I get all the elements I need to calculate our z-score. Use the formula to compute: $$z^* = \frac{\hat{p}_{diff} - 0}{SE}$$
 
-```{r z score}
+
+```r
 z_score <- p_diff_hat / se
 z_score
 ```
 
+```
+## [1] 19.13519
+```
+
 Finally, we calculate our p-value.
 
-```{r p value}
+
+```r
 p_value <- 2 * pnorm(z_score, lower.tail = FALSE)
 print(paste("p-value: ", p_value), quote = FALSE)
+```
+
+```
+## [1] p-value:  1.28605286758851e-81
 ```
 
 The p-value is almost 0, less than 0.05 of course. Hence, we reject the null hypothesis in favour of the alternative hypothesis. In another word, the difference of the proportions of people who agree with homosex in year 1982 and 2012 are statistically significant. We can't consider the two proportions as the same. The proportion has changed over the time.
@@ -182,10 +247,22 @@ Next, we want to construct 95% confidence interval of $p_{diff}$. Because of the
 $$SE = \sqrt{ \frac{\hat{p}_1 (1 - \hat{p}_1)}{n_1} + 
               \frac{\hat{p}_2 (1 - \hat{p}_2)}{n_2}}$$
 
-```{r confidence interval}
+
+```r
 se <- with(two_year_cmp, sqrt(sum(proportion * (1 - proportion) / n)))
 se
+```
+
+```
+## [1] 0.01628297
+```
+
+```r
 p_diff_hat + c(-1, 1) * 1.96 * se
+```
+
+```
+## [1] 0.2800257 0.3438550
 ```
 
 The confidence interval is $(0.280, 0.344)$. We are 95% confident that the proportion of US people who agree with homosex in 2012 is 0.280 to 0.344 higher than that in 1982.
