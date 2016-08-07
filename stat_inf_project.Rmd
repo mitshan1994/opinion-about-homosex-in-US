@@ -1,10 +1,11 @@
 ---
 title: "Statistical inference with the GSS data"
-output: 
-  html_document: 
+output:
+  html_document:
     fig_height: 4
     highlight: pygments
     theme: spacelab
+  pdf_document: default
 ---
 
 ## Setup
@@ -18,10 +19,6 @@ library(statsr)
 ```
 
 ### Load data
-
-Make sure your data and R Markdown files are in the same directory. When loaded
-your data file will be called `gss`. Delete this note when before you submit 
-your work. 
 
 ```{r load-data}
 load("gss.Rdata")
@@ -61,12 +58,14 @@ Particularly, we want to know whether there is a big difference in the proprotio
 ## Part 3: Exploratory data analysis
 
 In the dataset, the opinions about homosex are one of the followings:
+
 * Always Wrong
 * Almst Always Wrg
 * Sometimes Wrong
 * Not Wrong At All
 * Other
-And we will consider *Not Wrong At All* as agree with homosex and other four choices as the opposite. The proportion of the first people is a key index of people's opinions to homosex.
+
+And we will consider **Not Wrong At All** as agree with homosex and other four choices as the opposite. The proportion of the first people is a key index of people's opinions to homosex.
 
 First, let's have a look at the trend of the proportion.
 
@@ -92,7 +91,7 @@ g <- g + labs(title = "Proportion of US people agree with homosex over years")
 g
 ```
 
-In the above plot, there is a clear uptrend of the proportion of US people who have the opinion that Homosex is **not wrong at all**. Particularly, we want to check seriously whether there is a difference of proportion in the year 1982 and 2012. First, let's look at these two years' comparison.
+In the above plot, there is a clear uptrend of the proportion of US people who have the opinion that homosex is **not wrong at all**. Particularly, we want to check seriously whether there is a difference of proportion in the year 1982 and 2012. First, let's look at these two years' comparison.
 
 ```{r two years compare}
 two_year_cmp <- prop_aggr[prop_aggr$year %in% c("1982", "2012"), ]
@@ -119,7 +118,7 @@ p_diff_hat
 And we get $$\hat{p}_{1982} = 0.1343874$$ $$\hat{p}_{2012} = 0.4463277$$
 $$\hat{p}_{diff} = \hat{p}_{2012} - \hat{p}_{1982} = 0.3119403$$
 
-But, is that difference statistically different? We will use statistical inference to check it strictly.
+But, is that difference statistically significant? We will use statistical inference to check it strictly.
 
 * * *
 
@@ -150,7 +149,7 @@ two_year_cmp$failure_hat <- round(two_year_cmp$n * (1 - p_pool))
 two_year_cmp
 ```
 
-The numbers of success and failure computed are great or equal to 10. So the success-failure condition satisfies. The independence is also satisfied because of the full probability sampling.And we can use CLT for the two proportion comparison. In another word, 
+The numbers of success and failure computed are great or equal to 10. So the success-failure condition satisfies. The independence is also satisfied because of the full probability sampling. And we can use CLT for the two proportion comparison. In another word, 
 $$\hat{p}_{2012} - \hat{p}_{1982} = \hat{p}_{diff} \sim N(\mu, SE)$$
 
 Under the $H_0$, we have $\mu = 0$, $SE = \sqrt{\frac{\hat{p}_{pool}(1 - \hat{p}_{pool})}{n_1} + \frac{\hat{p}_{pool}(1 - \hat{p}_{pool})}{n_2}}$
@@ -193,4 +192,4 @@ The confidence interval is $(0.280, 0.344)$. We are 95% confident that the propo
 0 is not in the interval $(0.280, 0.344)$. HT and CI agree with each other, which is expected.
 
 #### Conclusion
-The proportion of US people who agree with homosex has significantly difference between 1982 and 2012. And the trend is more and more people arguing that homosex is not wrong at all.(Easy to get the information in the EDA phase).
+The proportions of US people who agree with homosex has significantly difference between 1982 and 2012. And the trend is more and more people arguing that homosex is not wrong at all.(Easy to get the information in the EDA phase).
